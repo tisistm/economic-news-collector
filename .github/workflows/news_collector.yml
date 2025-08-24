@@ -1,0 +1,64 @@
+# 워크플로의 이름
+name: Economic News Collector
+
+# 워크플로 트리거 조건 정의
+on:
+  # 매시간 정각에 스케줄 실행 (UTC 기준)
+  schedule:
+    - cron: '0 * * * *' # '0 */1 * * *'과 동일
+  # 수동 실행을 위한 workflow_dispatch 트리거
+  workflow_dispatch:
+
+# 워크플로 작업 정의
+jobs:
+  collect-news:
+    # 실행 환경 지정
+    runs-on: ubuntu-latest
+    
+    # 작업이 저장소 콘텐츠에 쓰기 권한을 갖도록 설정
+    permissions:
+      contents: write
+
+    # 작업 단계 정의
+    steps:
+      # 1. 저장소 코드 체크아웃
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Python 환경 설정
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10' # 사용할 Python 버전 지정
+          cache: 'pip' # pip 의존성 캐싱으로 설치 속도 향상
+
+      # 3. Python 의존성 설치
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install feedparser pytz
+          # 만약 requirements.txt 파일이 있다면:
+          # pip install -r requirements.txt
+
+      # 4. 뉴스 수집 스크립트 실행
+      - name: Run news collection script
+        run: python collect_news.py
+
+      # 5. 변경 사항 커밋 및 푸시
+      - name: Commit and push if there are changes
+        run: |
+          # Git 사용자 정보 설정
+          git config --global user.name "GitHub Actions Bot"
+          git config --global user.email "actions@github.com"
+          
+          # 변경 사항이 있는지 확인
+          if! git diff --quiet; then
+            # 변경 사항이 있으면 스테이징
+            git add data/
+            # 커밋 메시지에 현재 날짜 포함
+            git commit -m "Update news data on $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+            # 원격 저장소에 푸시
+            git push
+          else
+            echo "No changes to commit."
+          fi
