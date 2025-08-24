@@ -24,7 +24,7 @@ def parse_published_date(entry):
 
 def fetch_and_parse_feeds():
     """RSS 피드를 가져와 파싱하고 새로운 뉴스 아이템을 반환"""
-    new_articles =
+    new_articles = []
     for feed_name, url in RSS_FEEDS.items():
         try:
             feed = feedparser.parse(url)
