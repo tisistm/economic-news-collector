@@ -30,7 +30,6 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.10' # 사용할 Python 버전 지정
-          cache: 'pip' # pip 의존성 캐싱으로 설치 속도 향상
 
       # 3. Python 의존성 설치
       - name: Install dependencies
